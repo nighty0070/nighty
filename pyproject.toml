@@ -8,5 +8,4 @@ dependencies = [
     "requests>=2.32.3",
     "python-telegram-bot>=20.7",
     "yt-dlp>=2025.2.19",
-    "telegram>=0.0.1",
 ]
