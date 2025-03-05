@@ -2,8 +2,7 @@
 import asyncio
 import requests
 from bs4 import BeautifulSoup
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # API Keys
 TMDB_API_KEY = "bcadb817e29b815d64826bbf1c92b6ba"  # Get from https://www.themoviedb.org/settings/api
@@ -56,11 +55,11 @@ async def get_1337x_torrents(movie_name):
     return None
 
 # Function to handle /start command
-async def start(update: Update, context: CallbackContext):
+async def start(update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🎬 Welcome! Send me a movie name, and I'll find details and download links for you.")
 
 # Function to handle user messages (movie search + torrents)
-async def handle_message(update: Update, context: CallbackContext):
+async def handle_message(update, context: ContextTypes.DEFAULT_TYPE):
     movie_name = update.message.text
     title, overview, poster = await search_movie(movie_name)
 
