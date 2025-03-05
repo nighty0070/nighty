@@ -27,7 +27,35 @@ async def search_movies(movie_name, page=1):
 
         movies = []
         if response.get("results"):
-            for movie in response["results"][:10]:  # Get top 10 results from page
+            results = response.get("results", [])
+            
+            # Prioritize exact or close matches to move to the top
+            exact_matches = []
+            similar_matches = []
+            other_matches = []
+            
+            # Convert search term to lowercase for case-insensitive matching
+            search_lower = movie_name.lower()
+            
+            for movie in results:
+                title = movie["title"]
+                title_lower = title.lower()
+                
+                if title_lower == search_lower:
+                    # Exact match
+                    exact_matches.append(movie)
+                elif search_lower in title_lower or title_lower in search_lower:
+                    # Similar match - one contains the other
+                    similar_matches.append(movie)
+                else:
+                    # Other results
+                    other_matches.append(movie)
+            
+            # Combine the lists with exact matches first
+            sorted_results = exact_matches + similar_matches + other_matches
+            
+            # Process the sorted results
+            for movie in sorted_results[:10]:  # Get top 10 results from page
                 title = movie["title"]
                 release_date = movie.get("release_date", "Unknown")
                 year = release_date.split("-")[0] if release_date and "-" in release_date else "Unknown"
