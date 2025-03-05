@@ -4,4 +4,8 @@ version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "requests>=2.32.3",
+    "telegram>=0.0.1",
+    "yt-dlp>=2025.2.19",
+]
