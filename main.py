@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # API Keys
 TMDB_API_KEY = "bcadb817e29b815d64826bbf1c92b6ba"  # Get from https://www.themoviedb.org/settings/api
 BOT_TOKEN = "6960970165:AAGXmlE6qInIVdS840zV40CqbG5i2fSqMSc"  # Get from BotFather
+TARGET_BOT_USERNAME = "@Hdgkiibot"  # Target bot for additional content
 
 # Function to search for movies on TMDb
 async def search_movies(movie_name, page=1):
@@ -130,6 +131,25 @@ async def get_1337x_torrents(movie_name, page=1):
     
     return None
 
+# Function to fetch content from target bot via API
+async def get_target_bot_content(movie_name, context):
+    try:
+        # Store the information that we're waiting for target bot content
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"🔍 Getting additional sources for '{movie_name}' from {TARGET_BOT_USERNAME}..."
+        )
+        
+        # Here we would integrate with the target bot's API if available
+        # Since direct bot-to-bot communication requires a custom API or middleware,
+        # we'll need to implement that integration based on the target bot's capabilities
+        
+        # Placeholder for now - you would replace this with actual integration
+        return f"To get additional sources from {TARGET_BOT_USERNAME}, simply search for '{movie_name}' directly with that bot."
+    except Exception as e:
+        logger.error(f"Error getting target bot content: {e}")
+        return None
+
 # Function to handle /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🎬 Welcome! Send me a movie name, and I'll find details and download links for you.")
@@ -139,6 +159,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         movie_name = update.message.text
         logger.info(f"Searching for movie: {movie_name}")
+        
+        # Let the user know we're searching
+        await update.message.reply_text("🔍 Searching for movies... Please wait!")
         
         # Store the search query in the user_data
         context.user_data["search_query"] = movie_name
@@ -171,6 +194,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 nav_buttons.append(InlineKeyboardButton(f"1/{total_pages}", callback_data="page_info"))
                 nav_buttons.append(InlineKeyboardButton("Next ▶️", callback_data="next_page"))
                 keyboard.append(nav_buttons)
+                
+            # Add a button to get links from the target bot
+            keyboard.append([InlineKeyboardButton(f"Get More Sources from {TARGET_BOT_USERNAME}", callback_data=f"more_sources_{movie_name}")])
             
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
@@ -206,6 +232,11 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif query.data.startswith("movie_"):
             movie_id = query.data.split("_")[1]
             await show_movie_details(query, context, movie_id)
+            
+        # Handle request for more sources from target bot
+        elif query.data.startswith("more_sources_"):
+            movie_name = query.data.split("_", 2)[2]
+            await query.edit_message_text(f"To get additional sources from {TARGET_BOT_USERNAME}, send '{movie_name}' directly to that bot.")
     
     except Exception as e:
         logger.error(f"Error handling callback: {e}")
@@ -243,6 +274,9 @@ async def update_movies_list(query, context):
             nav_buttons.append(InlineKeyboardButton("Next ▶️", callback_data="next_page"))
             keyboard.append(nav_buttons)
             
+            # Add a button to get links from the target bot
+            keyboard.append([InlineKeyboardButton(f"Get More Sources from {TARGET_BOT_USERNAME}", callback_data=f"more_sources_{search_query}")])
+            
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(message, parse_mode="Markdown", reply_markup=reply_markup)
     except Exception as e:
@@ -267,8 +301,11 @@ async def show_movie_details(query, context, movie_id):
             if not yts_links and not x1337_links:
                 torrent_message += "❌ No torrents found."
             
-            # Create back button to return to search results
-            keyboard = [[InlineKeyboardButton("◀️ Back to Results", callback_data="prev_page")]]
+            # Create keyboard with back button and button to get more sources
+            keyboard = [
+                [InlineKeyboardButton("◀️ Back to Results", callback_data="prev_page")],
+                [InlineKeyboardButton(f"Get More Sources from {TARGET_BOT_USERNAME}", callback_data=f"more_sources_{title}")]
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
             message = f"🎬 *{title}*\n\n📖 {overview}\n🖼 {poster}\n\n{torrent_message}"
